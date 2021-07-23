@@ -73,7 +73,7 @@ rnn = NetGraph[
     "stackInputs" -> CatenateLayer[2],
     "vectorize" -> UnitVectorLayer[],
     "gru" -> NetChain[{
-      LongShortTermMemoryLayer[512]
+      GatedRecurrentLayer[512]
     }],
     "NoteDecoder" -> NetMapOperator@NetChain[{
       LinearLayer[Length[validNotes]],
