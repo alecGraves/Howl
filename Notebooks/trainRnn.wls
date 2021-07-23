@@ -66,7 +66,7 @@ valset = With[{flat = Flatten[valdata]},
 
 (* Build the network *)
 
-validNotes = Range[HowlNoteToInt["C-1"], HowlNote ToInt["B8"]];
+validNotes = Range[HowlNoteToInt["C-1"], HowlNoteToInt["B8"]];
 
 buildSnnBlock[nodes_] := NetChain[Flatten@(
   {
@@ -86,10 +86,13 @@ buildProcessingGraph[depth_] := With[{
   ],
     Flatten@{
       {NetPort["Input"], NetPort["Input"]->"Linear1"} -> "Catenate1",
-      Table[
+      If[depth < 2,
+        Nothing,
+        (* Else *)
+        Table[
         {"Catenate" <> ToString[x], "Catenate" <> ToString[x] -> "Linear" <> ToString[x + 1]}
             -> "Catenate" <> ToString[x + 1],
-        {x, 1, depth-1}]
+        {x, 1, depth-1}]]
     }
   ]];
 
@@ -100,7 +103,7 @@ rnn = NetGraph[
     "LSTM" -> NetChain[{
       LongShortTermMemoryLayer[416]
     }],
-    "OutputProcessing" -> NetMapOperator@buildProcessingGraph[3],
+    "OutputProcessing" -> NetMapOperator@buildProcessingGraph[1],
     "NoteDecoder" -> NetMapOperator@NetChain[{
       LinearLayer[Length[validNotes]],
       SoftmaxLayer[]
@@ -183,7 +186,7 @@ trainingResults = NetTrain[
   TrainingProgressCheckpointing-> {
     "Directory", checkpointDir, "Interval"->Quantity[2,"Hours"]
   },
-  TargetDevice -> {"GPU", 2},
+  TargetDevice -> {"GPU", 1},
   WorkingPrecision -> "Mixed",
   TimeGoal -> Quantity[12, "Hours"]
 ];
