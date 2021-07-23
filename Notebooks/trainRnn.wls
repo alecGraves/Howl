@@ -28,7 +28,7 @@ generatorFn[encToUse_, len_] := Module[{i=1, encLen=Length[encToUse]},
     batchSize = batchInfo["BatchSize"]
   },
     i = Mod[i, encLen]+1;
-    Table[encToNetInput[sampleSong[(*HowlAugmentV1[*) encToUse[[ Mod[i+x, encLen]+1 ]] (*]*), len]], {x, 1, batchSize}]
+    Table[encToNetInput[sampleSong[HowlAugmentV1[ encToUse[[ Mod[i+x, encLen]+1 ]] ], len]], {x, 1, batchSize}]
   ]]
 ];
 
@@ -48,14 +48,14 @@ If[FailureQ[dataset],
 encoded = (Key["EncodedNotesV1"] /@ dataset) /. _Missing -> Nothing;
 
 
-{encTrain, encVal} = splitTrainVal[encoded, 0.9];
+(*{encTrain, encVal} = splitTrainVal[encoded, 0.9];
 Print["Training set has ", Length[encTrain], " songs."];
-Print["Validation set has ", Length[encVal], " songs."];
-
-(* Build a static validation set to use while training. *)
-valGen = generatorFn[encVal, 200];
+Print["Validation set has ", Length[encVal], " songs."];*)
+encTrain = encoded;
+(* Build a static encVal set to use while training. *)
+valGen = generatorFn[encTrain, 500];
 valdata = Map[valGen,
-  Table[<|"BatchSize" -> 2|>, Length[encVal]]
+  Table[<|"BatchSize" -> 2|>, Length[encTrain]]
 ];
 
 valset = With[{flat = Flatten[valdata]},
@@ -72,62 +72,21 @@ rnn = NetGraph[
   <|
     "stackInputs" -> CatenateLayer[2],
     "vectorize" -> UnitVectorLayer[],
-(*    "expand" -> NetMapThreadOperator@NetChain[{
-      LinearLayer[4096],
-      ElementwiseLayer["SELU"]
-    }],*)
-    "lstm" -> NetChain[{
-      LongShortTermMemoryLayer[1024],
-      ElementwiseLayer["SELU"]
+    "gru" -> NetChain[{
+      LongShortTermMemoryLayer[512]
     }],
-    "lstms-deep" -> NetChain[{
-      LongShortTermMemoryLayer[512],
-      ElementwiseLayer["SELU"],
-      DropoutLayer[0.01, "Method"->"AlphaDropout"],
-      LongShortTermMemoryLayer[512],
-      ElementwiseLayer["SELU"]
-    }],
-    "grus-deep" -> NetChain[{
-      GatedRecurrentLayer[1024],
-      ElementwiseLayer["SELU"],
-      DropoutLayer[0.01, "Method"->"AlphaDropout"],
-      GatedRecurrentLayer[512],
-      ElementwiseLayer["SELU"],
-      DropoutLayer[0.01, "Method"->"AlphaDropout"],
-      GatedRecurrentLayer[1024],
-      ElementwiseLayer["SELU"]
-    }],
-    "grus" -> NetChain[{
-      GatedRecurrentLayer[512],
-      ElementwiseLayer["SELU"],
-      DropoutLayer[0.01, "Method"->"AlphaDropout"],
-      GatedRecurrentLayer[512],
-      ElementwiseLayer["SELU"]
-    }],
-    "catenate2" -> CatenateLayer[2],
     "NoteDecoder" -> NetMapOperator@NetChain[{
-      DropoutLayer[0.1, "Method"->"AlphaDropout"],
-(*      LinearLayer[2048],
-      ElementwiseLayer["SELU"],
-      DropoutLayer[0.01, "Method"->"AlphaDropout"],*)
       LinearLayer[Length[validNotes]],
       SoftmaxLayer[]
     }],
     "NoteDataDecoder" -> NetMapOperator@NetChain[{
-      DropoutLayer[0.1, "Method"->"AlphaDropout"],
-(*      LinearLayer[2048],
-      ElementwiseLayer["SELU"],
-      DropoutLayer[0.01, "Method"->"AlphaDropout"],*)
       LinearLayer[3]
       }]
   |>,
   {
     {NetPort["NoteData"], NetPort["Notes"] -> "vectorize"}
       -> "stackInputs"
-(*    {"stackInputs"-> "expand", "stackInputs"}
-      -> "catenate2"*)
-      -> {"grus", "grus-deep", "lstm", "lstms-deep"}
-      -> "catenate2"
+      -> "gru"
       -> {
         "NoteDecoder" -> NetPort["NotePred"],
         "NoteDataDecoder" -> NetPort["NoteDataPred"]
@@ -145,13 +104,7 @@ trnn = NetGraph[
     "mostNote" -> SequenceMostLayer[],
     "restNoteData" -> SequenceRestLayer[],
     "mostNoteData" -> SequenceMostLayer[],
-    "sl1Loss" -> NetChain[{
-      FunctionLayer[Apply[Total@
-          With[{diff = Abs[#pred - #true]},
-            If[diff < 1.0, 0.5*diff^2, diff - 0.5]] &
-      ]],
-      SummationLayer[]
-    }],
+    "meanSquaredLoss" -> MeanSquaredLossLayer[],
     "categoricalLoss" ->  CrossEntropyLossLayer["Index"],
     "lossTotal" -> TotalLayer[]
   |>,
@@ -160,7 +113,7 @@ trnn = NetGraph[
     NetPort["NoteData"] -> {"mostNoteData", "restNoteData"},
     {"mostNoteData", "mostNote"} -> "rnn",
     {NetPort["rnn", "NoteDataPred"], "restNoteData"}
-        -> "sl1Loss"
+        -> "meanSquaredLoss"
         -> "lossTotal",
     NetPort["rnn", "NotePred"] -> NetPort["categoricalLoss", "Input"],
     "restNote" -> NetPort["categoricalLoss", "Target"],
@@ -191,19 +144,19 @@ trainingResults = NetTrain[
   trnn,
   {
     generatorFn[encTrain, 500],
-    (* # of rounds, each batch is one song, so we set rounds to (# of batche`s) * songs. *)
-    "RoundLength" -> Length[encTrain]
+    (* # of rounds, each batch is one song, so we set rounds to (# of batches) * songs. *)
+    "RoundLength" -> Length[encTrain] * 4
   },
   All,
   ValidationSet -> valset,
   LossFunction -> "Loss",
-  BatchSize-> 12,
+  BatchSize-> 24,
   TrainingProgressCheckpointing-> {
     "Directory", checkpointDir, "Interval"->Quantity[2,"Hours"]
   },
   TargetDevice -> {"GPU", 1},
   WorkingPrecision -> "Mixed",
-  TimeGoal -> Quantity[16, "Hours"]
+  TimeGoal -> Quantity[12, "Hours"]
 ];
 
 
