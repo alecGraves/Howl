@@ -23,6 +23,10 @@ into integer semitones from middle C (C4)";
 HowlIntToNote::usage = "HowlIntToNote[note_Integer] converts an Integer number of semitones from C4
 (e.g. 1) to a note string (e.g. \"C#4\")";
 
+HowlIntToOctSemi::usage = "Convert integer pitch representation to octave, semitone";
+
+HowlOctSemiToInt::usage = "Convert octave, semitone pitch representation to integer pitch";
+
 HowlFindMidis::usage = "HowlFindMidis[directory_String] returns a list of all midi FileNames in that directory";
 
 HowlMidiImport::usage = "HowlMidiImport[file_String] imports a midi file, saving flat list of SoundNotes in all tracks.
@@ -40,21 +44,22 @@ Note there is no instrument information preserved. ";
 
 HowlAugmentV1::usage = "Applies random speed warp and pitch shift to notes from HowlEncodeNotesV1";
 
+
 Begin["`Private`"];
 
 
 Clear[octThresh];
 octThresh[oct_] := Clip[oct, {-1, 8}];
 
-Clear[intToOctSemi];
+Clear[HowlIntToOctSemi];
 (* Convert integer to {octave, semitone} tuple AND apply octave threshold *)
-intToOctSemi[x_] := {octThresh[Floor[x / 12 + 4]], Mod[x, 12]};
+HowlIntToOctSemi[x_] := {octThresh[Floor[x / 12 + 4]], Mod[x, 12]};
 
-Clear[octSemiToInt];
+Clear[HowlOctSemiToInt];
 (* Convert octave and semitone args to Integer note rep. AND apply octave threshold *)
-octSemiToInt[octave_, semitone_] := (octThresh[octave] - 4) * 12 + semitone;
+HowlOctSemiToInt[octave_, semitone_] := (octThresh[octave] - 4) * 12 + semitone;
 (* Vectorized version: *)
-octSemiToInt[octSemi_] := (octThresh[octSemi[[1]]] - 4) * 12 + octSemi[[2]];
+HowlOctSemiToInt[octSemi_] := (octThresh[octSemi[[1]]] - 4) * 12 + octSemi[[2]];
 
 ClearAll[keyToNum, numToKey];
 (* Convert our notes to integer semitone representation *)
@@ -79,16 +84,16 @@ HowlNoteToInt[note_String] := With[{
       numChars // StringJoin // Interpreter["Integer"] /. _?FailureQ -> 4],
     semitones = keyToNum[StringDelete[note, numChars] // ToUpperCase] /. _Missing -> 0
   },
-    octSemiToInt[octave, semitones]
+    HowlOctSemiToInt[octave, semitones]
   ]
 ];
 
 (* If we pass an Integer or Real, we want to apply octave thresholding, so run it through octSemiToInt. *)
-HowlNoteToInt[x:(_Real | _Integer)] := octSemiToInt[intToOctSemi[IntegerPart@Round[x]]];
+HowlNoteToInt[x:(_Real | _Integer)] := HowlOctSemiToInt[HowlIntToOctSemi[IntegerPart@Round[x]]];
 
 Clear[HowlIntToNote];
 HowlIntToNote[note_Integer] := With[{
-    octaveSemitone = intToOctSemi[IntegerPart@Round[note]]
+    octaveSemitone = HowlIntToOctSemi[IntegerPart@Round[note]]
   },
   numToKey @ octaveSemitone[[2]]  <> ToString @ octaveSemitone[[1]]
 ];
@@ -168,7 +173,7 @@ timeWarp[encoded_, warpFactor_] :=
 Clear[pitchShift];
 pitchShift[encoded_, semitones_] := With[{et = Transpose[encoded]},
   (* Perform octave/semitone conversion and back to enforce min and max notes. *)
-  Transpose @ Join[et[[;;-2]], {octSemiToInt[intToOctSemi[et[[-1]] + semitones]]}]
+  Transpose @ Join[et[[;;-2]], {HowlOctSemiToInt[HowlIntToOctSemi[et[[-1]] + semitones]]}]
 ];
 
 Clear[volumeShift];
