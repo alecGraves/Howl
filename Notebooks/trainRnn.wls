@@ -66,27 +66,56 @@ valset = With[{flat = Flatten[valdata]},
 
 (* Build the network *)
 
-validNotes = Range[HowlNoteToInt["C-1"], HowlNoteToInt["B8"]];
+validNotes = Range[HowlNoteToInt["C-1"], HowlNote ToInt["B8"]];
+
+buildSnnBlock[nodes_] := NetChain[Flatten@(
+  {
+    LinearLayer[#],
+    ElementwiseLayer["SELU"],
+    DropoutLayer[0.01, "Method" -> "AlphaDropout"]
+  }& /@ nodes)
+];
+
+buildProcessingGraph[depth_] := With[{
+  linearNames=Table["Linear"<>ToString[x],{x, depth}],
+  concatNames=Table["Catenate"<>ToString[x],{x, depth}]
+},
+  NetGraph[AssociationThread[
+    Join[linearNames, concatNames],
+    Join[Table[buildSnnBlock[{512, 256, 512}], depth], Table[CatenateLayer[], depth]]
+  ],
+    Flatten@{
+      {NetPort["Input"], NetPort["Input"]->"Linear1"} -> "Catenate1",
+      Table[
+        {"Catenate" <> ToString[x], "Catenate" <> ToString[x] -> "Linear" <> ToString[x + 1]}
+            -> "Catenate" <> ToString[x + 1],
+        {x, 1, depth-1}]
+    }
+  ]];
 
 rnn = NetGraph[
   <|
-    "stackInputs" -> CatenateLayer[2],
-    "vectorize" -> UnitVectorLayer[],
-    "gru" -> NetChain[{
-      GatedRecurrentLayer[512]
+    "Stack" -> CatenateLayer[2],
+    "Vectorize" -> UnitVectorLayer[],
+    "LSTM" -> NetChain[{
+      LongShortTermMemoryLayer[416]
     }],
+    "OutputProcessing" -> NetMapOperator@buildProcessingGraph[3],
     "NoteDecoder" -> NetMapOperator@NetChain[{
       LinearLayer[Length[validNotes]],
       SoftmaxLayer[]
     }],
     "NoteDataDecoder" -> NetMapOperator@NetChain[{
-      LinearLayer[3]
+      LinearLayer[3],
+      ElementwiseLayer[LogisticSigmoid],
+      ElementwiseLayer[#*3&]
       }]
   |>,
   {
-    {NetPort["NoteData"], NetPort["Notes"] -> "vectorize"}
-      -> "stackInputs"
-      -> "gru"
+    {NetPort["NoteData"], NetPort["Notes"] -> "Vectorize"}
+      -> "Stack"
+      -> "LSTM"
+      -> "OutputProcessing"
       -> {
         "NoteDecoder" -> NetPort["NotePred"],
         "NoteDataDecoder" -> NetPort["NoteDataPred"]
@@ -145,7 +174,7 @@ trainingResults = NetTrain[
   {
     generatorFn[encTrain, 500],
     (* # of rounds, each batch is one song, so we set rounds to (# of batches) * songs. *)
-    "RoundLength" -> Length[encTrain] * 4
+    "RoundLength" -> Length[encTrain] * 4 * 4
   },
   All,
   ValidationSet -> valset,
@@ -154,7 +183,7 @@ trainingResults = NetTrain[
   TrainingProgressCheckpointing-> {
     "Directory", checkpointDir, "Interval"->Quantity[2,"Hours"]
   },
-  TargetDevice -> {"GPU", 1},
+  TargetDevice -> {"GPU", 2},
   WorkingPrecision -> "Mixed",
   TimeGoal -> Quantity[12, "Hours"]
 ];
