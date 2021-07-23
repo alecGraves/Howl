@@ -170,12 +170,18 @@ pitchShift[encoded_, semitones_] := With[{et = Transpose[encoded]},
   (* Perform octave/semitone conversion and back to enforce min and max notes. *)
   Transpose @ Join[et[[;;-2]], {octSemiToInt[intToOctSemi[et[[-1]] + semitones]]}]
 ];
-(*octSemiToInt[intToOctSemi[*)
+
+Clear[volumeShift];
+volumeShift[encoded_, volShift_] := With[{et = Transpose[encoded]},
+  (* Perform octave/semitone conversion and back to enforce min and max notes. *)
+  Transpose @ Join[et[[;;2]], {et[[3]]*volShift}, {et[[-1]]}]
+];
 
 Clear[HowlAugmentV1];
 HowlAugmentV1[encodedV1_] := encodedV1 // Composition[
   timeWarp[#, RandomReal[{0.5, 2.0}]]&,
-  pitchShift[#, RandomInteger[{-11, 11}]]&
+  pitchShift[#, RandomInteger[{-11, 11}]]&,
+  volumeShift[#, RandomReal[{0.8, 1.0}]]&
 ];
 
 
