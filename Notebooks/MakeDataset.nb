@@ -1,0 +1,204 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='WolframDesktop 12.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       161,          7]
+NotebookDataLength[      7510,        196]
+NotebookOptionsPosition[      5759,        160]
+NotebookOutlinePosition[      6208,        177]
+CellTagsIndexPosition[      6165,        174]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Get", "[", "\"\<../Howl/HowlMidiTools.wl\>\"", "]"}]}], "Input",
+ CellChangeTimes->{{3.8356093596990767`*^9, 3.8356094346726985`*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"90b75dbf-72e6-4b9d-a53b-055cee322de1"],
+
+Cell["My dataset is a collection of .mid files.", "CodeText",
+ CellChangeTimes->{{3.835609536848547*^9, 
+  3.835609583135748*^9}},ExpressionUUID->"fccc34fa-e96c-418c-a8b2-\
+8930528beb08"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+  "datasetPath", " ", "=", " ", 
+   "\"\<E:\\\\datasets\\\\music\\\\alec_finetune\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"time", ",", " ", "dataset"}], "}"}], " ", "=", " ", 
+   RowBox[{
+    RowBox[{"Map", "[", 
+     RowBox[{"HowlMidiImport", ",", " ", 
+      RowBox[{"HowlFindMidis", "@", "datasetPath"}]}], "]"}], " ", "//", " ", 
+    "AbsoluteTiming"}]}], 
+  ";"}], "\[IndentingNewLine]", "time", "\[IndentingNewLine]", 
+ RowBox[{"Length", "@", "dataset"}]}], "Input",
+ CellChangeTimes->{{3.8356094447253227`*^9, 3.835609524314663*^9}, {
+  3.835609593181987*^9, 3.8356096182369766`*^9}, {3.8356136057075396`*^9, 
+  3.83561360673973*^9}, {3.8356176649601*^9, 3.835617696520486*^9}, {
+  3.8356177328514757`*^9, 3.8356177416585784`*^9}, {3.8356178739900885`*^9, 
+  3.8356178751895294`*^9}},
+ CellLabel->"In[25]:=",ExpressionUUID->"32ae3648-50d8-4c1f-91c7-e0838927b3ea"],
+
+Cell[BoxData["637.6790336`"], "Output",
+ CellChangeTimes->{{3.835617657119881*^9, 3.8356176759080477`*^9}, 
+   3.8356177386424356`*^9, 3.835617802218032*^9, 3.8356185306395206`*^9},
+ CellLabel->"Out[27]=",ExpressionUUID->"4dafada4-6f09-43ea-96e7-fb5a2752fb85"],
+
+Cell[BoxData["145"], "Output",
+ CellChangeTimes->{{3.835617657119881*^9, 3.8356176759080477`*^9}, 
+   3.8356177386424356`*^9, 3.835617802218032*^9, 3.8356185306875224`*^9},
+ CellLabel->"Out[28]=",ExpressionUUID->"20c05503-fa53-4ff8-ad1a-86f3901c9814"]
+}, Open  ]],
+
+Cell["\<\
+We will need to convert the dataset format of 
+
+{{timeSincePrev, duration, volume, noteInt}, ...}
+\
+\>", "CodeText",
+ CellChangeTimes->{{3.8356096484552135`*^9, 3.8356097798775644`*^9}, {
+  3.8356102445608864`*^9, 3.8356102936855216`*^9}, {3.835610330380672*^9, 
+  3.8356103422389016`*^9}, {3.836121652442035*^9, 
+  3.836121671678031*^9}},ExpressionUUID->"b854163e-56b1-4283-8d83-\
+91fe46a9ff9f"],
+
+Cell["\<\
+Note, data can fail to load, so we will remove all of the failures first.\
+\>", "CodeText",
+ CellChangeTimes->{{3.835610691740798*^9, 
+  3.835610714789056*^9}},ExpressionUUID->"d8429e22-3a88-4dbd-877c-\
+76eeaa571096"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"datasetNoFailures", " ", "=", 
+   RowBox[{
+    RowBox[{"Query", "[", 
+     RowBox[{"Select", "[", 
+      RowBox[{
+       RowBox[{"!", 
+        RowBox[{"FailureQ", "[", 
+         RowBox[{"#", "[", "\"\<Notes\>\"", "]"}], "]"}]}], "&"}], "]"}], 
+     "]"}], "[", "dataset", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Length", " ", "@", " ", "datasetNoFailures"}]}], "Input",
+ CellChangeTimes->{{3.8356104228938646`*^9, 3.8356104535947385`*^9}, {
+  3.8356104958307447`*^9, 3.835610520372944*^9}, {3.835610558027938*^9, 
+  3.8356106214168425`*^9}},
+ CellLabel->"In[29]:=",ExpressionUUID->"992e2f80-9791-4ae0-a0bf-6aa55cfc21df"],
+
+Cell[BoxData["145"], "Output",
+ CellChangeTimes->{3.8356106216858435`*^9, 3.835613860484239*^9, 
+  3.835618610182029*^9},
+ CellLabel->"Out[30]=",ExpressionUUID->"496e5303-64e3-482f-bd8e-269c8ac9a090"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Export", "[", 
+  RowBox[{
+  "\"\<dataset_music_finetune_20210718.wxf\>\"", ",", "datasetNoFailures"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.835618621504178*^9, 3.83561862290856*^9}, {
+  3.83562019373227*^9, 
+  3.835620193792528*^9}},ExpressionUUID->"29a29777-0971-45a5-b93c-\
+b367a93a93e2"],
+
+Cell[BoxData["\<\"dataset_music_finetune_20200718.wxf\"\>"], "Output",
+ CellChangeTimes->{3.83561862612807*^9},
+ CellLabel->"Out[31]=",ExpressionUUID->"54d38c3c-b31b-468f-97df-fcca93364157"]
+}, Open  ]],
+
+Cell["We will now extract the encoded data we are training on.", "CodeText",
+ CellChangeTimes->{{3.8356108743657804`*^9, 
+  3.835610893367625*^9}},ExpressionUUID->"e6a5d6a7-5299-4dac-9bb4-\
+49e0657082a3"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"datasetEncoded", " ", "=", " ", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"Key", "[", "\"\<EncodedNotesV1\>\"", "]"}], " ", "/@", " ", 
+      "datasetNoFailures"}], ")"}], "/.", 
+    RowBox[{"_Missing", " ", "->", " ", "Nothing"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Length", " ", "@", " ", 
+  "datasetEncoded"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.8356107436805563`*^9, 3.835610883608568*^9}},
+ CellLabel->"In[32]:=",ExpressionUUID->"968de165-c2a0-4cff-b7e4-2a82d8729594"],
+
+Cell[BoxData["145"], "Output",
+ CellChangeTimes->{{3.835610857351949*^9, 3.8356108841616106`*^9}, 
+   3.8356138633770037`*^9, 3.835618668949235*^9},
+ CellLabel->"Out[33]=",ExpressionUUID->"70a648a6-59fe-40b6-8cf2-dabfb3122607"]
+}, Open  ]]
+},
+WindowSize->{1092, 841},
+WindowMargins->{{Automatic, 126}, {Automatic, 0}},
+TaggingRules->Association["TryRealOnly" -> False],
+FrontEndVersion->"12.3 for Microsoft Windows (64-bit) (May 13, 2021)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"8a9fe606-c698-410c-84d3-187cc69a210f"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[561, 20, 364, 7, 50, "Input",ExpressionUUID->"90b75dbf-72e6-4b9d-a53b-055cee322de1"],
+Cell[928, 29, 187, 3, 38, "CodeText",ExpressionUUID->"fccc34fa-e96c-418c-a8b2-8930528beb08"],
+Cell[CellGroupData[{
+Cell[1140, 36, 958, 22, 90, "Input",ExpressionUUID->"32ae3648-50d8-4c1f-91c7-e0838927b3ea"],
+Cell[2101, 60, 260, 3, 33, "Output",ExpressionUUID->"4dafada4-6f09-43ea-96e7-fb5a2752fb85"],
+Cell[2364, 65, 251, 3, 33, "Output",ExpressionUUID->"20c05503-fa53-4ff8-ad1a-86f3901c9814"]
+}, Open  ]],
+Cell[2630, 71, 406, 10, 101, "CodeText",ExpressionUUID->"b854163e-56b1-4283-8d83-91fe46a9ff9f"],
+Cell[3039, 83, 227, 5, 38, "CodeText",ExpressionUUID->"d8429e22-3a88-4dbd-877c-76eeaa571096"],
+Cell[CellGroupData[{
+Cell[3291, 92, 666, 15, 50, "Input",ExpressionUUID->"992e2f80-9791-4ae0-a0bf-6aa55cfc21df"],
+Cell[3960, 109, 200, 3, 33, "Output",ExpressionUUID->"496e5303-64e3-482f-bd8e-269c8ac9a090"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4197, 117, 319, 8, 29, "Input",ExpressionUUID->"29a29777-0971-45a5-b93c-b367a93a93e2"],
+Cell[4519, 127, 190, 2, 33, "Output",ExpressionUUID->"54d38c3c-b31b-468f-97df-fcca93364157"]
+}, Open  ]],
+Cell[4724, 132, 204, 3, 38, "CodeText",ExpressionUUID->"e6a5d6a7-5299-4dac-9bb4-49e0657082a3"],
+Cell[CellGroupData[{
+Cell[4953, 139, 560, 13, 70, "Input",ExpressionUUID->"968de165-c2a0-4cff-b7e4-2a82d8729594"],
+Cell[5516, 154, 227, 3, 33, "Output",ExpressionUUID->"70a648a6-59fe-40b6-8cf2-dabfb3122607"]
+}, Open  ]]
+}
+]
+*)
+
