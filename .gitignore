@@ -1,0 +1,8 @@
+# Binary Training Data & Weights
+checkpoints*/
+*.wlnet
+*.wxf
+
+# Audio
+*.mid
+*.mp3
