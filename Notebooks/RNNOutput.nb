@@ -1,0 +1,385 @@
+Notebook[{
+Cell["Load the MIDI tools:", "CodeText",
+ CellChangeTimes->{{3.8361187031883574`*^9, 
+  3.836118709470354*^9}},ExpressionUUID->"e7736845-bafc-4531-b012-\
+608c695107f8"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"<<", " ", "\"\<../Howl/HowlMidiTools.wl\>\""}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.835737392846323*^9, 3.8357374315661955`*^9}, 
+   3.8359317077856846`*^9},
+ CellLabel->"In[1]:=",ExpressionUUID->"e4dc6ba4-06ed-4290-8a71-d23557c1df1a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"encToNetInput", "[", "encSong_", "]"}], " ", ":=", " ", 
+  RowBox[{"<|", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"\"\<NoteData\>\"", "->", 
+     RowBox[{"encSong", "[", 
+      RowBox[{"[", 
+       RowBox[{"All", ",", " ", 
+        RowBox[{"1", ";;", "3"}]}], "]"}], "]"}]}], ",", " ", 
+    "\[IndentingNewLine]", 
+    RowBox[{"\"\<Notes\>\"", "->", " ", 
+     RowBox[{"encSong", "[", 
+      RowBox[{"[", 
+       RowBox[{"All", ",", " ", "4"}], "]"}], "]"}]}]}], 
+   "\[IndentingNewLine]", "|>"}]}]], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.8357474765629363`*^9, 3.8357474778001995`*^9}, 
+   3.8357479059860306`*^9},
+ CellLabel->"In[3]:=",ExpressionUUID->"98b8b013-e1ad-452c-813b-6a2998a6f1fe"],
+
+Cell["\<\
+This is how to get the predictor from a training net (i.e. trnn):\
+\>", "CodeText",
+ CellChangeTimes->{{3.836118717027356*^9, 
+  3.8361187627094316`*^9}},ExpressionUUID->"1f506bae-b29c-4715-a6fa-\
+f6fb13835346"],
+
+Cell[BoxData[
+ RowBox[{"trained", " ", "=", " ", 
+  RowBox[{
+  "Import", "[", 
+   "\"\<checkpoints_2021-07-21T12-31-21\\\\2021-07-21T12-31-33_0_4971_54680_2.\
+62e+1_2.39e+1.wlnet\>\"", "]"}]}]], "Input",
+ CellChangeTimes->{{3.8359319420389132`*^9, 3.835931974359397*^9}, 
+   3.8359328209989333`*^9},
+ CellLabel->"In[80]:=",ExpressionUUID->"b888b036-28ec-46e0-88d6-d18baa0ff275"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"getPredictor", "[", "trained_", "]"}], " ", ":=", " ", 
+  RowBox[{"NetGraph", "[", 
+   RowBox[{
+    RowBox[{"<|", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"\"\<rnn\>\"", " ", "->", " ", 
+       RowBox[{"NetExtract", "[", " ", 
+        RowBox[{"trained", ",", " ", "\"\<rnn\>\""}], "]"}]}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"\"\<lastPred\>\"", " ", "->", " ", 
+       RowBox[{"SequenceLastLayer", "[", "]"}]}], ",", "\[IndentingNewLine]", 
+      RowBox[{"\"\<lastDataPred\>\"", " ", "->", " ", 
+       RowBox[{"SequenceLastLayer", "[", "]"}]}]}], "\[IndentingNewLine]", 
+     "|>"}], ",", "\[IndentingNewLine]", 
+    RowBox[{"{", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"NetPort", "[", 
+        RowBox[{"\"\<rnn\>\"", ",", " ", "\"\<NotePred\>\""}], "]"}], " ", "->",
+        " ", 
+       RowBox[{"\"\<lastPred\>\"", " ", "->", " ", 
+        RowBox[{"NetPort", "[", "\"\<NotesPred\>\"", "]"}]}]}], ",", " ", 
+      "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"NetPort", "[", 
+        RowBox[{"\"\<rnn\>\"", ",", " ", "\"\<NoteDataPred\>\""}], "]"}], " ",
+        "->", 
+       RowBox[{"\"\<lastDataPred\>\"", "->", 
+        RowBox[{"NetPort", "[", "\"\<NoteDataPred\>\"", "]"}]}]}]}], 
+     "\[IndentingNewLine]", "}"}], ",", " ", "\[IndentingNewLine]", 
+    RowBox[{"\"\<Notes\>\"", " ", "->", " ", 
+     RowBox[{"{", 
+      RowBox[{"\"\<Varying\>\"", ",", " ", 
+       RowBox[{"NetEncoder", "[", 
+        RowBox[{"{", 
+         RowBox[{"\"\<Class\>\"", ",", "validNotes"}], "}"}], "]"}]}], " ", 
+      "}"}]}], ",", "\[IndentingNewLine]", 
+    RowBox[{"\"\<NotesPred\>\"", " ", "->", " ", 
+     RowBox[{"NetDecoder", "[", 
+      RowBox[{"{", 
+       RowBox[{"\"\<Class\>\"", ",", "validNotes"}], "}"}], "]"}]}]}], 
+   "\[IndentingNewLine]", "]"}]}]], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{
+  3.836119197704578*^9},ExpressionUUID->"84f47bc5-9097-419d-97f7-\
+a7be08974dfe"],
+
+Cell[BoxData[
+ RowBox[{"getPredictor", "[", "trained", "]"}]], "Input",
+ CellChangeTimes->{{3.835748152240796*^9, 3.8357482690210695`*^9}, {
+  3.835748317680771*^9, 3.835748493664524*^9}, {3.8357485263748856`*^9, 
+  3.83574859057412*^9}, {3.835748633055725*^9, 3.835748739122098*^9}, {
+  3.836119148000061*^9, 
+  3.8361191924305773`*^9}},ExpressionUUID->"57675eb7-fc52-47a7-8495-\
+ade2a282f7c5"],
+
+Cell["\<\
+This is how to import a standard predictor - output by the training script as \
+predictor_xxx.wlnet\
+\>", "CodeText",
+ CellChangeTimes->{{3.8361187711564546`*^9, 
+  3.8361188088274784`*^9}},ExpressionUUID->"1ab274cd-8e58-4e89-85bf-\
+ee0a402b93e2"],
+
+Cell[BoxData[
+ RowBox[{"predictor", " ", "=", " ", 
+  RowBox[{
+  "Import", "[", 
+   "\"\<checkpoints_2021-07-22T05-13-24\\\\predictor_2021-07-22T05-13-24.\
+wlnet\>\"", "]"}]}]], "Input",
+ CellChangeTimes->{{3.8359316952859445`*^9, 3.835931781070755*^9}, {
+  3.835934338806881*^9, 3.8359343453584433`*^9}, {3.8359356001057878`*^9, 
+  3.835935601524659*^9}},ExpressionUUID->"6cbe089b-fbea-4d36-8c1c-\
+df922b7d029e"],
+
+Cell["This is how to generate music from a predictor network:", "CodeText",
+ CellChangeTimes->{{3.836118824538481*^9, 3.83611884822748*^9}, {
+  3.836119027345781*^9, 
+  3.836119029266782*^9}},ExpressionUUID->"745340be-7cfb-4188-bf59-\
+154f9730ed6f"],
+
+Cell[BoxData[{
+ RowBox[{"ClearAll", "[", 
+  RowBox[{"fromPred", ",", " ", "firstNote"}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"fromPred", "[", "pred_", "]"}], " ", ":=", " ", 
+  RowBox[{"Transpose", "@", 
+   RowBox[{"Join", "[", 
+    RowBox[{
+     RowBox[{"Transpose", "[", 
+      RowBox[{"pred", "[", "\"\<NoteDataPred\>\"", "]"}], "]"}], ",", " ", 
+     RowBox[{"{", 
+      RowBox[{"pred", "[", "\"\<NotesPred\>\"", "]"}], "}"}]}], 
+    "]"}]}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"firstNote", "[", "]"}], " ", ":=", " ", 
+  RowBox[{"{", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"RandomReal", "[", "]"}], ",", 
+     RowBox[{"RandomReal", "[", "]"}], ",", 
+     RowBox[{"RandomReal", "[", 
+      RowBox[{"{", 
+       RowBox[{"0.3", ",", " ", "1.0"}], "}"}], "]"}], ",", 
+     RowBox[{"RandomInteger", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"-", "12"}], ",", " ", "24"}], "}"}], "]"}]}], "}"}], 
+   "}"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"makeMusic", "[", 
+   RowBox[{"predictor_", ",", " ", "firstNote_", ",", " ", "len_"}], "]"}], 
+  " ", ":=", " ", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"Nest", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Join", "[", 
+        RowBox[{"#", ",", " ", 
+         RowBox[{"{", 
+          RowBox[{"fromPred", "[", 
+           RowBox[{"predictor", "[", 
+            RowBox[{
+             RowBox[{"encToNetInput", "[", 
+              RowBox[{"#", "[", 
+               RowBox[{"[", 
+                RowBox[{
+                 RowBox[{"-", 
+                  RowBox[{"Min", "[", 
+                   RowBox[{
+                    RowBox[{"Length", "@", "#"}], ",", " ", "500"}], "]"}]}], 
+                 ";;"}], "]"}], "]"}], "]"}], ",", " ", 
+             RowBox[{"TargetDevice", "->", 
+              RowBox[{"{", 
+               RowBox[{"\"\<GPU\>\"", ",", " ", "2"}], "}"}]}]}], "]"}], 
+           "]"}], "}"}]}], "]"}], "&"}], ",", "\[IndentingNewLine]", 
+      "firstNote", ",", " ", "len"}], "]"}], " ", "//", " ", 
+    "HowlDecodeNotesV1"}], " ", "//", " ", "Sound"}]}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.8357488455719404`*^9, 3.8357489630612555`*^9}, 
+   3.835931808602749*^9, {3.8359318971080165`*^9, 3.8359318995613537`*^9}, {
+   3.835932035726824*^9, 3.8359320868503046`*^9}, {3.835932465592375*^9, 
+   3.835932591084636*^9}, {3.8359904417862344`*^9, 3.835990473202073*^9}, {
+   3.835990752583273*^9, 3.8359907951357946`*^9}, {3.835991725448614*^9, 
+   3.8359917267796164`*^9}, {3.836039192225665*^9, 3.8360392049436707`*^9}, {
+   3.83611885494448*^9, 
+   3.836118904858261*^9}},ExpressionUUID->"7681523e-adb1-43d7-96c6-\
+0bef15efb047"],
+
+Cell[BoxData[
+ RowBox[{"makeMusic", "[", 
+  RowBox[{"predictor", ",", " ", 
+   RowBox[{"firstNote", "[", "]"}], ",", "500"}], "]"}]], "Input",
+ CellChangeTimes->{{3.835931841579039*^9, 3.8359318586897783`*^9}, {
+  3.8359323316271725`*^9, 3.8359323323678102`*^9}, {3.83593264898697*^9, 
+  3.8359326490779705`*^9}, {3.835987578325946*^9, 3.8359875786818886`*^9}, {
+  3.8359882148771763`*^9, 3.835988215614177*^9}, {3.8359884669609756`*^9, 
+  3.8359884782909746`*^9}, {3.835989196162151*^9, 3.8359891968031473`*^9}, {
+  3.8359903488702364`*^9, 3.835990349207235*^9}, {3.8359915952310963`*^9, 
+  3.835991596001095*^9}},
+ CellLabel->"In[79]:=",ExpressionUUID->"222a33d6-76a0-41ce-828f-921c73e2cf6f"],
+
+Cell[CellGroupData[{
+
+Cell["512 node GRU", "Subsection",
+ CellChangeTimes->{{3.8360332493748636`*^9, 
+  3.836033268051387*^9}},ExpressionUUID->"ad6200f2-838c-4ccd-8c79-\
+1ca08b838174"],
+
+Cell[BoxData[{
+ RowBox[{"results", " ", "=", "  ", 
+  RowBox[{
+  "Import", "[", 
+   "\"\<checkpoints_2021-07-22T20-36-58\\\\results_2021-07-22T20-36-58.wxf\>\"\
+", "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"predictor", " ", "=", " ", 
+  RowBox[{
+  "Import", "[", 
+   "\"\<checkpoints_2021-07-22T20-36-58\\\\predictor_2021-07-22T20-36-58.\
+wlnet\>\"", "]"}]}]}], "Input",
+ CellChangeTimes->{{3.836033126463575*^9, 3.8360331417425737`*^9}, {
+  3.8360332284786777`*^9, 3.8360332295488524`*^9}, {3.8360332707643814`*^9, 
+  3.8360332873099003`*^9}},
+ CellLabel->"In[15]:=",ExpressionUUID->"f6962b1a-087e-4db9-9558-448ac8131e02"],
+
+Cell[BoxData[
+ RowBox[{"makeMusic", "[", 
+  RowBox[{"predictor", ",", " ", 
+   RowBox[{"firstNote", "[", "]"}], ",", "500"}], "]"}]], "Input",
+ CellLabel->
+  "In[101]:=",ExpressionUUID->"61814c60-be1b-4eca-b93b-5d741fedcbc7"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"dateTimeStr", "=", 
+   RowBox[{"StringReplace", "[", 
+    RowBox[{
+     RowBox[{"DateString", "[", "\"\<ISODateTime\>\"", "]"}], ",", 
+     RowBox[{"\"\<:\>\"", "->", "\"\<-\>\""}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{
+   "\"\<rnn_gru_512_\>\"", "<>", "dateTimeStr", "<>", "\"\<.mid\>\""}], ",", 
+   " ", "%23"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.836033581062069*^9, 3.8360336507240696`*^9}, {
+  3.8360340512780285`*^9, 3.8360340513440294`*^9}},
+ CellLabel->"In[24]:=",ExpressionUUID->"84237ef4-9b4a-48ef-ad88-c34dde2c1670"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1024 Node LSTM", "Subsection",
+ CellChangeTimes->{{3.8360388953448787`*^9, 
+  3.836038898932207*^9}},ExpressionUUID->"a400aa6f-9cf6-4afb-b330-\
+2e273a9366b2"],
+
+Cell[BoxData[{
+ RowBox[{"results", " ", "=", "  ", 
+  RowBox[{
+  "Import", "[", 
+   "\"\<checkpoints_2021-07-22T21-40-55\\\\results_2021-07-22T21-40-55.wxf\>\"\
+", "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"predictor", " ", "=", " ", 
+  RowBox[{
+  "Import", "[", 
+   "\"\<checkpoints_2021-07-22T21-40-55\\\\predictor_2021-07-22T21-40-55.\
+wlnet\>\"", "]"}]}]}], "Input",
+ CellChangeTimes->{{3.8360389269712057`*^9, 3.836038939734207*^9}},
+ CellLabel->"In[72]:=",ExpressionUUID->"591037dd-2997-4a8e-95b7-e13d6f3a93c1"],
+
+Cell[BoxData[
+ RowBox[{"makeMusic", "[", 
+  RowBox[{"predictor", ",", " ", 
+   RowBox[{"firstNote", "[", "]"}], ",", "500"}], "]"}]], "Input",
+ CellLabel->
+  "In[102]:=",ExpressionUUID->"510b7a05-6dc0-4353-81b5-8b5551553290"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"dateTimeStr", "=", 
+   RowBox[{"StringReplace", "[", 
+    RowBox[{
+     RowBox[{"DateString", "[", "\"\<ISODateTime\>\"", "]"}], ",", 
+     RowBox[{"\"\<:\>\"", "->", "\"\<-\>\""}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{
+   "\"\<rnn_lstm_1024_\>\"", "<>", "dateTimeStr", "<>", "\"\<.mid\>\""}], ",",
+    " ", "%96"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.8360401488732615`*^9, 3.836040158576261*^9}, {
+  3.8360416106939735`*^9, 3.8360416108459744`*^9}, {3.8360416985480185`*^9, 
+  3.836041698814019*^9}, {3.8360435035789127`*^9, 3.836043504343911*^9}},
+ CellLabel->"In[97]:=",ExpressionUUID->"b138e63e-4539-47d5-bbb0-ca45cccfaf83"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["416 node LSTM", "Subsection",
+ CellChangeTimes->{{3.836086263416416*^9, 
+  3.8360862656974583`*^9}},ExpressionUUID->"d71cfef4-083b-410b-93fa-\
+db5aee1b7632"],
+
+Cell["\<\
+Note, I lost the first 6 hours of training this one. So this is several hours \
+in.\
+\>", "CodeText",
+ CellChangeTimes->{{3.8360862978281984`*^9, 
+  3.8360863119699984`*^9}},ExpressionUUID->"db560265-2ee4-4bdf-88ad-\
+844321de50be"],
+
+Cell[BoxData[
+ RowBox[{"results", " ", "=", " ", 
+  RowBox[{
+  "Import", "[", 
+   "\"\<checkpoints_2021-07-23T18-20-47\\\\results_2021-07-23T18-20-47.wxf\>\"\
+", "]"}]}]], "Input",
+ CellChangeTimes->{{3.836086268684634*^9, 3.8360862851896772`*^9}},
+ CellLabel->
+  "In[103]:=",ExpressionUUID->"30491dc0-0bfe-4276-a70d-61d7b493f5ff"],
+
+Cell[BoxData[
+ RowBox[{"predictor", " ", "=", " ", 
+  RowBox[{
+  "Import", "[", 
+   "\"\<checkpoints_2021-07-23T18-20-47\\\\predictor_2021-07-23T18-20-47.\
+wlnet\>\"", "]"}]}]], "Input",
+ CellChangeTimes->{{3.836086320471021*^9, 3.83608633095369*^9}},
+ CellLabel->"In[8]:=",ExpressionUUID->"909530f6-6c61-473b-948d-2f132099c286"],
+
+Cell[BoxData[
+ RowBox[{"makeMusic", "[", 
+  RowBox[{"predictor", ",", " ", 
+   RowBox[{"firstNote", "[", "]"}], ",", "1000"}], "]"}]], "Input",
+ CellChangeTimes->{{3.8360931031629877`*^9, 3.8360931261185036`*^9}},
+ CellLabel->"In[12]:=",ExpressionUUID->"31606705-2aa9-48d6-b3fa-75dec2fdec33"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"dateTimeStr", "=", 
+   RowBox[{"StringReplace", "[", 
+    RowBox[{
+     RowBox[{"DateString", "[", "\"\<ISODateTime\>\"", "]"}], ",", 
+     RowBox[{"\"\<:\>\"", "->", "\"\<-\>\""}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{
+   RowBox[{
+   "\"\<rnn_lstm_416_\>\"", "<>", "dateTimeStr", "<>", "\"\<.mid\>\""}], ",", 
+   " ", "%12"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.8360864988311367`*^9, 3.836086505891528*^9}, {
+  3.83608656404498*^9, 3.8360865640999804`*^9}, {3.8360872123009167`*^9, 
+  3.836087212657999*^9}, {3.836087322859141*^9, 3.8360873230871983`*^9}, {
+  3.8360890730349245`*^9, 3.8360890733139277`*^9}, {3.836089174995928*^9, 
+  3.836089175307926*^9}, {3.8360906256571007`*^9, 3.8360906258771024`*^9}, {
+  3.8360937724632063`*^9, 3.836093772561207*^9}},
+ CellLabel->"In[13]:=",ExpressionUUID->"a4124473-200c-4f2b-90cc-a8a3ff05b327"]
+}, Open  ]]
+},
+WindowSize->{909, 801},
+WindowMargins->{{53, Automatic}, {Automatic, 0}},
+PrivateNotebookOptions->{"FileOutlineCache"->False},
+FrontEndVersion->"12.3 for Microsoft Windows (64-bit) (May 13, 2021)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"e6dfccb1-daa0-4e32-856d-f2b51bc2f942"
+]
