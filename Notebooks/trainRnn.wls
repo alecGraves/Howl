@@ -48,14 +48,14 @@ If[FailureQ[dataset],
 encoded = (Key["EncodedNotesV1"] /@ dataset) /. _Missing -> Nothing;
 
 
-(*{encTrain, encVal} = splitTrainVal[encoded, 0.9];
+{encTrain, encVal} = splitTrainVal[encoded, 0.9];
 Print["Training set has ", Length[encTrain], " songs."];
-Print["Validation set has ", Length[encVal], " songs."];*)
-encTrain = encoded;
+Print["Validation set has ", Length[encVal], " songs."];
+
 (* Build a static encVal set to use while training. *)
-valGen = generatorFn[encTrain, 500];
+valGen = generatorFn[encVal, 500];
 valdata = Map[valGen,
-  Table[<|"BatchSize" -> 2|>, Length[encTrain]]
+  Table[<|"BatchSize" -> 2|>, Length[encVal]]
 ];
 
 valset = With[{flat = Flatten[valdata]},
@@ -111,7 +111,7 @@ rnn = NetGraph[
     "NoteDataDecoder" -> NetMapOperator@NetChain[{
       LinearLayer[3],
       ElementwiseLayer[LogisticSigmoid],
-      ElementwiseLayer[#*3&]
+      ElementwiseLayer[#*4&]
       }]
   |>,
   {
@@ -137,6 +137,7 @@ trnn = NetGraph[
     "restNoteData" -> SequenceRestLayer[],
     "mostNoteData" -> SequenceMostLayer[],
     "meanSquaredLoss" -> MeanSquaredLossLayer[],
+    "x3" -> ElementwiseLayer[#*3&],
     "categoricalLoss" ->  CrossEntropyLossLayer["Index"],
     "lossTotal" -> TotalLayer[]
   |>,
@@ -145,7 +146,7 @@ trnn = NetGraph[
     NetPort["NoteData"] -> {"mostNoteData", "restNoteData"},
     {"mostNoteData", "mostNote"} -> "rnn",
     {NetPort["rnn", "NoteDataPred"], "restNoteData"}
-        -> "meanSquaredLoss"
+        -> "meanSquaredLoss" -> "x3"
         -> "lossTotal",
     NetPort["rnn", "NotePred"] -> NetPort["categoricalLoss", "Input"],
     "restNote" -> NetPort["categoricalLoss", "Target"],
@@ -155,7 +156,6 @@ trnn = NetGraph[
   "NoteData" -> {"Varying", 3}
 ];
 
-(* save the training network *)
 
 If[FailureQ[trnn],
   Print["Building network failed. Exiting..."];
@@ -182,11 +182,10 @@ trainingResults = NetTrain[
   All,
   ValidationSet -> valset,
   LossFunction -> "Loss",
-  BatchSize-> 24,
   TrainingProgressCheckpointing-> {
     "Directory", checkpointDir, "Interval"->Quantity[2,"Hours"]
   },
-  TargetDevice -> {"GPU", 1},
+  TargetDevice -> {"GPU", 2},
   WorkingPrecision -> "Mixed",
   TimeGoal -> Quantity[12, "Hours"]
 ];
