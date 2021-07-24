@@ -1,3 +1,12 @@
+(* Mathematica Script *)
+(* :Author: Alec Graves *)
+(* :Date: 2021-07-20 *)
+
+(* :Mathematica Version: 12.3 *)
+(* :Copyright: (c) 2021 Alec Graves *)
+(* THE UNLICENSE *)
+
+(* Import Howl library midi tools *)
 scriptPath = DirectoryName[ExpandFileName[First[$ScriptCommandLine]]];
 SetDirectory[scriptPath];
 << "../Howl/HowlMidiTools.wl";
@@ -129,6 +138,8 @@ rnn = NetGraph[
   (*"NotePred" -> NetDecoder[{"Class",validNotes}]*)
 ];
 
+(* Build the training network with loss functions included: *)
+
 trnn = NetGraph[
   <|
     "rnn" -> rnn,
@@ -160,6 +171,9 @@ trnn = NetGraph[
 If[FailureQ[trnn],
   Print["Building network failed. Exiting..."];
   Exit[-1]];
+
+(* Make a checkpoint directory and save the training net (uninitialized) *)
+
 
 Print[Information[trnn]];
 dateTimeStr = StringReplace[DateString["ISODateTime"], ":"->"-"];
@@ -196,6 +210,8 @@ If[FailureQ[trainingResults],
   Exit[-1]];
 
 Print["Training Complete!"];
+
+(* Save the training output files (training results data and final model) *)
 
 trained = trainingResults["TrainedNet"];
 predictor = NetGraph[<|
