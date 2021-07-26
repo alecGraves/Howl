@@ -110,7 +110,7 @@ rnn = NetGraph[
     "Stack" -> CatenateLayer[2],
     "Vectorize" -> UnitVectorLayer[],
     "LSTM" -> NetChain[{
-      LongShortTermMemoryLayer[256]
+      LongShortTermMemoryLayer[192]
     }],
     "OutputProcessing" -> NetMapOperator@buildProcessingGraph[1],
     "NoteDecoder" -> NetMapOperator@NetChain[{
@@ -186,17 +186,32 @@ Print["Training net saved: ", trainSaveName];
 
 
 Print["Generating training dataset"];
-(* Cache large number of training batches *)
-(* I have 150 songs, so if I want 240 samples of each song, that will be 150*240 *)
+
+(* Configurable batch parameters. *)
+(* outOfCore generates batches of augmented data on the fly, but will be 3x slower during training. *)
+outOfCore = True;
+(* exampleLength is the length of our note sequence to train on. *)
 exampleLength = 768;
-examplePerSong = 230;
-trainDataGen = generatorFn[encTrain, exampleLength];
-trainData = Flatten@Table[Print[i, " of ", 240]; trainDataGen[<|"BatchSize"->Length[encTrain]|>], {i, examplePerSong}];
-trainSet = With[{flat = Flatten[trainData]},
-  <|"NoteData" -> Map[Key["NoteData"], flat],
-    "Notes" -> Map[Key["Notes"], flat]
-  |>
-];
+
+trainSet = With[{trainDataGen = generatorFn[encTrain, exampleLength]},
+    If[outOfCore,
+      {trainDataGen, "RoundLength"->Length[encTrain]*4}
+    , (* Else *)
+      (* Cache large number of training batches *)
+      Block[{
+        examplePerSong = 490,
+        trainData
+      },
+      trainData = Flatten[Table[
+        Print[i, " of ", examplePerSong]; trainDataGen[<|"BatchSize"->Length[encTrain]|>],
+        {i, examplePerSong}
+      ]];
+      With[{flat = Flatten[trainData]},
+        <|
+          "NoteData" -> Map[Key["NoteData"], flat],
+          "Notes" -> Map[Key["Notes"], flat]
+        |>
+      ]]]];
 
 Print["Starting Training..."];
 
