@@ -42,7 +42,7 @@ generatorFn[encToUse_, len_] := Module[{i=1, encLen=Length[encToUse]},
 ];
 
 (* Try to load the dataset *)
-dataset = Import["dataset_music_finetune_20210718.wxf"];
+dataset = Import["dataset.wxf"];
 
 If[FailureQ[dataset],
   Print["Failed to load dataset! Exiting..."];
