@@ -227,7 +227,7 @@ trainingResults = NetTrain[
   TargetDevice -> {"GPU", 1},
   BatchSize -> 64,
   WorkingPrecision -> "Mixed",
-  TimeGoal -> Quantity[10, "Hours"]
+  TimeGoal -> Quantity[12, "Hours"]
 ];
 
 
