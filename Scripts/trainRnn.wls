@@ -259,7 +259,3 @@ Print["Predictor saved: ", predSaveName];
 
 resSaveName = Export[FileNameJoin@{checkpointDir,"results_"<>dateTimeStr<>".wxf"}, trainingResults];
 Print["Results saved: ", resSaveName];
-
-
-
-
