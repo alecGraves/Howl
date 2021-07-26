@@ -26,7 +26,7 @@ sampleSong[encodedSong_, len_] := With[{
 ];
 
 encToNetInput[encSong_] := <|
-  "NoteData" -> encSong[[All, 1 ;; 3]],
+  "NoteData" -> NumericArray[encSong[[All, 1 ;; 3]], "Real32"],
   "Notes" -> encSong[[All, 4]]
 |>;
 
@@ -56,10 +56,10 @@ If[FailureQ[dataset],
 
 encoded = (Key["EncodedNotesV1"] /@ dataset) /. _Missing -> Nothing;
 
+(* Use the same data for training and validation *)
+encTrain = encoded;
+encVal = encoded;
 
-{encTrain, encVal} = splitTrainVal[encoded, 0.9];
-Print["Training set has ", Length[encTrain], " songs."];
-Print["Validation set has ", Length[encVal], " songs."];
 
 (* Build a static encVal set to use while training. *)
 valGen = generatorFn[encVal, 500];
@@ -91,7 +91,7 @@ buildProcessingGraph[depth_] := With[{
 },
   NetGraph[AssociationThread[
     Join[linearNames, concatNames],
-    Join[Table[buildSnnBlock[{512, 256, 512}], depth], Table[CatenateLayer[], depth]]
+    Join[Table[buildSnnBlock[{256, 256, 256}], depth], Table[CatenateLayer[], depth]]
   ],
     Flatten@{
       {NetPort["Input"], NetPort["Input"]->"Linear1"} -> "Catenate1",
@@ -110,7 +110,7 @@ rnn = NetGraph[
     "Stack" -> CatenateLayer[2],
     "Vectorize" -> UnitVectorLayer[],
     "LSTM" -> NetChain[{
-      LongShortTermMemoryLayer[416]
+      LongShortTermMemoryLayer[256]
     }],
     "OutputProcessing" -> NetMapOperator@buildProcessingGraph[1],
     "NoteDecoder" -> NetMapOperator@NetChain[{
@@ -184,24 +184,35 @@ Print["Training net saved: ", trainSaveName];
 
 (* Train the network *)
 
+
+Print["Generating training dataset"];
+(* Cache large number of training batches *)
+(* I have 150 songs, so if I want 240 samples of each song, that will be 150*240 *)
+exampleLength = 768;
+examplePerSong = 230;
+trainDataGen = generatorFn[encTrain, exampleLength];
+trainData = Flatten@Table[Print[i, " of ", 240]; trainDataGen[<|"BatchSize"->Length[encTrain]|>], {i, examplePerSong}];
+trainSet = With[{flat = Flatten[trainData]},
+  <|"NoteData" -> Map[Key["NoteData"], flat],
+    "Notes" -> Map[Key["Notes"], flat]
+  |>
+];
+
 Print["Starting Training..."];
 
 trainingResults = NetTrain[
   trnn,
-  {
-    generatorFn[encTrain, 500],
-    (* # of rounds, each batch is one song, so we set rounds to (# of batches) * songs. *)
-    "RoundLength" -> Length[encTrain] * 4 * 4
-  },
+  trainSet,
   All,
   ValidationSet -> valset,
   LossFunction -> "Loss",
   TrainingProgressCheckpointing-> {
     "Directory", checkpointDir, "Interval"->Quantity[2,"Hours"]
   },
-  TargetDevice -> {"GPU", 2},
+  TargetDevice -> {"GPU", 1},
+  BatchSize -> 64,
   WorkingPrecision -> "Mixed",
-  TimeGoal -> Quantity[12, "Hours"]
+  TimeGoal -> Quantity[10, "Hours"]
 ];
 
 
