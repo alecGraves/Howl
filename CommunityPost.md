@@ -1,27 +1,27 @@
-## Training a Computer to Play the Piano
-This is a fun project I have wanted to do for about a year. I hope you can find this entertaining and informative if you are curious about how to train RNNs (LSTMs and GRUs) on custom, multi-input/output sequential data using the Wolfram Language.
+## [Training an RNN to Play the Piano 🎹 (link)](https://community.wolfram.com/groups/-/m/t/2328597)
+### Sequence Modeling of Musical Note Data
+This is a fun personal project I have wanted to do for about a year. I hope you can find this entertaining and informative if you are curious about how to train RNNs (LSTMs and GRUs) on custom, multi-input/output sequential data using the Wolfram Language.
 
-
-## Generated Music
+## Generated Music 🎶
 
 Here are some songs the models from this project have generated (after feeding a single random note as a seed):
 
-* [Forgotten Memory 0.1 - 512 node GRU](https://graves.tech/assets/piano/Forgotten_Memory_0-1_small.mp3)
-  / [High-Fi FLAC](https://graves.tech/assets/piano/Forgotten_Memory_0-1.flac)
+* [Forgotten Memory 0.1 - 512 node GRU (mp3)](https://graves.tech/assets/piano/Forgotten_Memory_0-1_small.mp3)
+  / [(High-Fi FLAC)](https://graves.tech/assets/piano/Forgotten_Memory_0-1.flac)
 
-* [Hopeful 0.1 - 416 node LSTM](https://graves.tech/assets/piano/Hopeful_0-1_small.mp3)
-  / [High-Fi FLAC](https://graves.tech/assets/piano/Hopeful_0-1.flac)
+* [Hopeful 0.1 - 416 node LSTM (mp3)](https://graves.tech/assets/piano/Hopeful_0-1_small.mp3)
+  / [(High-Fi FLAC)](https://graves.tech/assets/piano/Hopeful_0-1.flac)
 
-* [Behind the Gate 0.1 - 192 node LSTM](https://graves.tech/assets/piano/Behind_The_Gate_0-1_small.mp3)
-  / [High-Fi FLAC](https://graves.tech/assets/piano/Behind_The_Gate_0-1.flac)
+* [Behind the Gate 0.1 - 192 node LSTM (mp3)](https://graves.tech/assets/piano/Behind_The_Gate_0-1_small.mp3)
+  / [(High-Fi FLAC)](https://graves.tech/assets/piano/Behind_The_Gate_0-1.flac)
 
-* [Gradient Explosion 0.1 - 192 node LSTM](https://graves.tech/assets/piano/Gradient_Explosion_0-1_small.mp3)
-  / [High-Fi FLAC](https://graves.tech/assets/piano/Gradient_Explosion_0-1.flac)
+* [Gradient Explosion 0.1 - 192 node LSTM (mp3)](https://graves.tech/assets/piano/Gradient_Explosion_0-1_small.mp3)
+  / [(High-Fi FLAC)](https://graves.tech/assets/piano/Gradient_Explosion_0-1.flac)
 
 
 Pretty musical, right?!?!
 
-And here is the [192-node LSTM][model] if you want to generate your own music! (see below for "Output Prediction" instructions)
+And I here is the [192-node LSTM model][model] if you want to generate your own music! (see below for "Output Prediction" instructions)
 
 ## Introduction
 ML has recently gained a lot of traction in the fields of language modeling and sequential data processing / understanding. There are already [examples of how to use machine learning (Recurrent Neural Network/ RNN) for English language modeling](https://www.wolfram.com/language/12/neural-network-framework/train-a-net-to-model-english.html?product=mathematica) in the Wolfram Documentation. In this project, I take this simple RNN sequential data modeling approach and apply it to slightly more complex music data.
@@ -85,7 +85,7 @@ If anyone wants to play with the predictions without going through the training 
 
 
 ## Output Prediction
-After we have our predictor, we then generate audio by first giving our network a random note and repeatedly appending the output of the predictor to the input to get the next input.
+After we have our predictor, we then generate audio by first giving our network a random note then repeatedly appending the output of the predictor to the input at the next step.
 
 This is done with the Nest[] function and SequenceLastLayer[] below.
 
@@ -105,12 +105,11 @@ Musically, the networks seem to be capable of generating interesting new pattern
 
 If anyone has suggestions for more-efficiently generating RNN output (currently I use Nest[] and SequenceLastLayer[]), that would be super appreciated!
 
-Additionally, if anyone here has experience with Transformers in the wolfram language, I would really appreciate it if you could provide a simple example!!
-
-Transformers have the potential to greatly improve training times over the LSTM nets currently used by this project.
+Additionally, transformers have the potential to greatly improve training times over the LSTM nets currently used by this project. If anyone here has experience with Transformers in the wolfram language, I would really appreciate it if you could provide a simple example!!
 
 Remember to share the awesome stuff you build!
 
 -Alec
 
+[nb]: https://www.wolframcloud.com/obj/a31570f8-6e37-4618-bd29-b37cd70ced5e
 [model]: https://graves.tech/assets/piano/predictor_lstm192_2021-07-25T20-23-31.wlnet 
